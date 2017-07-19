@@ -1,0 +1,24 @@
+{
+  "name": "battleship",
+  "version": "1.0.0",
+  "description": "",
+  "main": "batleShip.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "serve": "http-server -p 3000 -o -c-1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Garifodiy/BattleShip.git"
+  },
+  "author": "Garifodiy",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Garifodiy/BattleShip/issues"
+  },
+  "homepage": "https://github.com/Garifodiy/BattleShip#readme",
+  "dependencies": {},
+  "devDependencies": {
+    "http-server": "^0.10.0"
+  }
+}
