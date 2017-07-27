@@ -9,20 +9,20 @@
     <!-- Тег meta для указания кодировки -->
     <meta charset="utf-8">
     <title>Battleship</title>
-    <style>
+    <style id="style_1">
         div#board{
             position: relative;
-            width: 512px;
-            height: 512px;
+            width: 510px;
+            height: 510px;
             margin: auto;
-            background: url("board_1.jpg") no-repeat;
+            background: url("board_0_green.jpg") no-repeat;
         }
 
         div#messageArea{
             position: absolute;
             top:  0px;
             left: 0px;
-            color: rgb(83, 175, 19);
+            color: rgb(0, 255, 25);
         }
 
         table {
@@ -39,23 +39,36 @@
             position: absolute;
             bottom:   0px;
             right:    0px;
-            padding: 15px;
-            background-color: rgb(83,175,19);
+            padding: 0px;
+            //background-color: rgb(83,175,19);
         }
         form input{
-            background-color: rgb(152,207,113);
-            border-color: rgb(83,175,19);
+            //background-color: rgb(0,255,25);
+            border-color: rgb(0,255,25);
             font-size: 1em;
         }
-
+		
+		.cell { }
         .hit {
-            background: url("ship.png") no-repeat center center;
+            background: url("ship_green.png") no-repeat center center;
         }
         .miss {
-            background: url("miss.png") no-repeat center center;
+            background: url("miss_green.png") no-repeat center center;
         }
-
+		.border {
+            background: url("border.png") no-repeat center center;
+        }
+		
     </style>
+	<style id="style_2">
+		.mouseOnCell {
+            background-color: rgb(0,255,25);
+			
+		}
+		.selectCell {
+            background-color: rgb(209,255,176);
+		}
+	</style>
 </head>
 
 <body>
@@ -87,11 +100,12 @@
                 </tr>
 
             </table>
-
+			<!--
             <form>
                 <input type="text" id="guessInput" placeHolder="A0">
                 <input type="button" id="fireButton" value="Fire!">
             </form>
+			-->
         </div>
 
         <script src="batleShip.js">

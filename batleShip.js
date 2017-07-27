@@ -10,6 +10,12 @@ var view ={
         messageArea.innerHTML = msg;
     },
     
+	
+	displayEmptyCell: function (location) {
+        var cell = document.getElementById(location);
+        cell.setAttribute("class", "cell");
+    },
+	
     displayHit: function (location) {
         var cell = document.getElementById(location);
         cell.setAttribute("class", "hit");
@@ -18,7 +24,19 @@ var view ={
     displayMiss: function (location) {
         var cell = document.getElementById(location);
         cell.setAttribute("class", "miss");
-    }
+    },
+	
+	displayBorderShip: function (location) {
+        var cell = document.getElementById(location);
+        cell.setAttribute("class", "border");
+    },
+	
+	CellColor: function(location, k) {
+		var cell = document.getElementById(location);
+		if(k==1) {cell.setAttribute("class", "mouseOnCell");}
+		if(k==2) {cell.setAttribute("class", "selectCell");}
+	}
+	
 }
 
 ////////////////////////////////////////////////////////
@@ -33,22 +51,26 @@ view.displayMessage("test_displayMessage_OK")
 //объект модель
 var model = {
     boardSize : 7,  // рразмер поля
-    numShips: 10,
+    numShips: 0,
     //shipLength: 3,  // длина корабля
     shipsLenngth: [1,2,3,4], //длины разных кораблей(1-палубник, 2х палубник,...4х палубник)
     shipsSunk: 0,   // текущее число потопленных кораблей
 
-    /*ships: [{ locations: ["10", "20","30"], hits: ["","",""] },
+    /*ships: [{ locations: ["10", "20","30"], borders:[], hits: ["","",""] },
         { locations: ["52", "53","54"], hits: ["","",""] },
         { locations: ["61", "62","63"], hits: ["","",""] },
     ],*/
     ships:[], //[{ locations: [], hits: [] } ],
 
+    cells: [],
+
+
+
     fire : function(guess) { //проверка на попадание по кораблю; guess - координата выстрела
         console.log("координата = ", guess);
         for(var i=0; i<this.numShips;i++){
             var ship = this.ships[i];
-            locations = ship.locations; //? var ?
+            //locations = ship.locations; //? var ?
             //var index = location.indexOf(guess);
             var index = ship.locations.indexOf(guess);
 
@@ -59,10 +81,12 @@ var model = {
                 if (this.isSunk(ship)){ // проверка на потоплен ли данный корабль
                     view.displayMessage("КОРАБЛЬ ПОТОПЛЕН!");
                     this.shipsSunk++;
+					console.log("shipsSunk: -", this.shipsSunk);
                 }
                 return true; //если есть попадание, то возвращается тру и дальнейшие действия прерываются
             }
         }
+		//console.log("ship: ", );
         //если не было обнаруженно попадания, то view должен отобразить промах и сообщить об этом
         view.displayMiss(guess);
         view.displayMessage("Промах!")
@@ -72,10 +96,11 @@ var model = {
     },
 
     isSunk:function (ship) { //проверка на то, потоплен ли корабль
-        for(var i=0;i<this.shipLength;i++){
-            if(ship.hits[i]!=="hit"){return false;}
-        }
-        return true;
+		if(ship.hits.length == ship.locations.length) {
+			console.log(ship.hits.length, " == ", ship.locations.length);
+			return true;
+		}
+        return false;
     },
 
     //СОЗДАНИЕ КОРАБЛЕЙ////////////////////////////////////////////////
@@ -84,37 +109,111 @@ var model = {
         if(numShips!=1 && numShips!=3 && numShips!=6 && numShips!=10 && numShips!=15)
                                 {return "Error: numShips not 1, 3, 6, 10 or 15 ";}
         this.numShips = numShips;
-        this.addShips(); //(numShips)
+        this.addEmptyShips(); //(numShips)
+        console.log("this.ships["+kShip+"]: ",this.ships);
         for (var i=0;i<this.numShips;i++) {
             // console.log("this.ships[" + i + "]: ", this.ships[i]);
-            console.log("this.ships["+i+"].locations: ",this.ships[i].locations);
-            console.log("this.ships["+i+"].hits: ",this.ships[i].hits);
+            //console.log("this.ships["+i+"].locations: ",this.ships[i].locations);
+            //console.log("this.ships["+i+"].hits: ",this.ships[i].hits);
         }
 
         var locations;
-        //console.log("this.numShips = ", this.numShips);
+        var border=[];
+        var maxShipLength;
+        var Shiplength=0;
+        var iEnd;
+        var kShip=0;
+        if(this.numShips == 1)  {iEnd=maxShipLength=1;};
+        if(this.numShips == 3)  {iEnd=maxShipLength=2;};
+        if(this.numShips == 6)  {iEnd=maxShipLength=3;};
+        if(this.numShips == 10) {iEnd=maxShipLength=4;};
+        if(this.numShips == 15) {iEnd=maxShipLength=5;};
+        for (var i=1;i<=iEnd;i++){
+            for(var j=1; j<=i; j++) {
+                Shiplength=0;
+
+                for(var iDeck = 1; iDeck<=maxShipLength; iDeck++){
+                    Shiplength++; //определяю длину текущего корабля
+                }
+                console.log("["+kShip+"] Shiplength = ", Shiplength);
+
+                // присваиваю координаты текущему кораблю.
+                // цикл проверяет на возможность полученных координат относительно других кораблей на поле
+                do{
+                    locations = this.generateCoordinateShip(Shiplength);  //(this.ships[i].locations.length);
+                } while (this.collision(locations));
+                this.ships[kShip].locations = locations;
+                this.ships[kShip].borders = this.createBorders(locations);
+                console.log("this.ships["+kShip+"].borders: ",this.ships[kShip].borders);
+				
+				//(временный код) отобразить на игровом поле границы корабля
+				/*for (var iB = 0; iB<this.ships[kShip].borders.length;iB++) {
+					view.displayBorderShip(this.ships[kShip].borders[iB]);
+				}*/
+				
+				
+                console.log("this.ships["+kShip+"].locations: ",this.ships[kShip].locations);
+                kShip++;
+            }
+            maxShipLength--;
+        }
+
+
+
+        /*
         for(var i=0; i<this.numShips; i++){
             console.log(i + "  /////////////////////////////////////");
             do{
-                locations = this.generateShip(this.ships[i].locations.length);
+                locations = this.generateCoordinateShip(Shiplength);  //(this.ships[i].locations.length);
             } while (this.collision(locations));
             this.ships[i].locations = locations;
 
             //console.log("this.ships["+i+"]: ",this.ships[i]);
             console.log("this.ships["+i+"].locations: ",this.ships[i].locations);
 
-        }
+        }*/
         console.log("////////////////////////////////////////");
         console.log("function createShips - OK")
         return "OK";//return true;//
     },
 
+    addEmptyShips: function () {
+        for( var i=0; i<this.numShips;i++){
+            this.ships.push({ locations: [], hits: [], borders: [] });
+        }
+
+    },
+
+    //делает границы вокруг корабля, что бы было не возможно поставить корабль вполтную друг к другу
+    createBorders: function (locations) {
+        var border = [];
+        var row;
+        var column;
+        var iBorder=-1;
+        for(var i = 0; i<locations.length; i++){
+            row     = locations[i].charAt(0);
+            column  = locations[i].charAt(1);
+			// 8  1  2
+            // 7  0  3
+            // 6  5  4
+			{border[++iBorder] = (row) +""+ (column);}                                                          //0
+			if(row>0) {border[++iBorder] =  (+row-1) +""+ (column); }                                           //1
+            if(row>0 && column<this.boardSize-1){border[++iBorder] = (+row-1) +""+ (+column+1)}                 //2
+			if(column<this.boardSize-1) {border[++iBorder] = (row) +""+ (+column+1);}                           //3
+            if(row<this.boardSize-1 && column<this.boardSize-1) {border[++iBorder] = (+row+1) +""+ (+column+1)} //4
+            if(row<this.boardSize-1) {border[++iBorder] = (+row+1) +""+ (column);}                              //5
+            if(row<this.boardSize-1 && column>0){border[++iBorder] = (+row+1) +""+ (+column-1)}                   //6
+            if(column>0) {border[++iBorder] =    (row) +""+ (+column-1);}                                       //7
+            if(row>0 && column>0){border[++iBorder] = (+row-1) +""+ (+column-1)}                                //8
+        }
+        return border;
+    },
     //4-х палубники - 1
     //3-х палубники - 2
     //2-х палубники - 3
     //1   палубники - 4
-    //добавление в массив ships объекты кораблей разных типов
-    addShips: function () {
+    //добавление в массив ships объекты кораблей разных типов без координат
+    addEmptyShips___0: function () {
         //this.numShips = numShips;
         var iEnd;
         var shipLength;
@@ -128,12 +227,12 @@ var model = {
         for (var i=1;i<=iEnd;i++){
             //this.ships.push({ locations: [0, 0, 0], hits: ["","",""] });
             for(var j=1; j<=i; j++) {
-                this.ships.push(createShipDesk());
+                this.ships.push(createShip());
             }
             shipLength--;
         }
 
-        function createShipDesk() {
+        function createShip() {
             var NewShip = { locations: [], hits: [] };
             for(var iDeck = 0; iDeck<shipLength; iDeck++){
                 //console.log("iDeck = ",iDeck,"shipLength = ",shipLength);
@@ -146,7 +245,7 @@ var model = {
 
 
     //создает список координат под корабль случайным образом
-    generateShip: function(shipLength){
+    generateCoordinateShip: function(shipLength){
         var direction = Math.floor(Math.random()*2); //генерит 1 или 0 для горизонтального/вертикального корабля
 
         var row, col;//начальная позиция
@@ -175,12 +274,25 @@ var model = {
             var ship = this.ships[i];
            // console.log(ship.locations)
             for(var j=0;j<locations.length; j++){
-                if( ship.locations.indexOf(locations[j]) >= 0 ){
+                if( ship.borders.indexOf(locations[j]) >= 0 ){ //ship.locations.indexOf(locations[j]) >= 0 
                     return true;
                 }
             }
         }
         return false;
+    },
+
+
+    setClassCell: function (location) {
+        var cell = document.getElementById(location);
+        for(var iCell=0; iCell<this.cells.length; iCell++){
+            if(this.cells[iCell].id == cell.id){
+                this.cells[iCell].flClass = cell.className;
+            }
+
+        }
+        //model.cells[iCells].flClass = model.cells[iCells].className; //запоминаю текущий класс ячейки
+
     }
 
 }
@@ -241,8 +353,28 @@ function parseGuess(guess) { //функция проверки вводимой 
 
 ////////////////////////////////////////////////////////
 function init(){
+	var cells_ = document.getElementsByClassName("cell");
+	for (var i=0;i<cells_.length;i++) {
+		model.cells[i] = cells_[i]
+	}
+    console.log("cells: ", model.cells);
+	//console.log("model.cells = ",model.cells.length);
+    for (var iCells = 0; iCells< model.cells.length; iCells++) {
+        model.cells[iCells].flClass = model.cells[iCells].className; //запоминаю текущий класс ячейки
+		model.cells[iCells].select = false;
+		//console.log("cells[iCells].fl = ", cells[iCells].fl);
+        //model.cells[iCells].onclick = selectCell;
+		model.cells[iCells].addEventListener("click",selectCell);
+        model.cells[iCells].addEventListener("mouseover",mouseOnCell); //mousemove
+        model.cells[iCells].addEventListener("mouseout",mouseOutCell);
+    }
+    
+
+
+
     do{
-        var NShips = prompt("число кораблей(1,3,6,10,15):");
+        //var NShips = prompt("число кораблей(1,3,6,10,15):");
+		var NShips = 6;
         var createShips_ = model.createShips(NShips);
         if(createShips_!="OK") {console.log(createShips_);}
     } while (createShips_!="OK");
@@ -251,32 +383,70 @@ function init(){
 
     console.log("_______________________________");
     for(var i = 0; i<model.numShips; i++){
-        console.log("ships:",model.ships[i].locations);
+        console.log("ships:",model.ships[i].locations,model.ships[i].hits);
     }
 
-
+/*
     var fireButton = document.getElementById("fireButton");
     fireButton.onclick = handleFireButton;
     //по нажатию на энтер
     var guessInput = document.getElementById("guessInput");
     guessInput.onkeypress = handleKeyPress;
+*/
 
-    var cells = document.getElementsByClassName("cell");
-    //console.log("cell: ", cells[0]);
-    for (var iCells = 0; iCells< cells.length; iCells++) {
-        cells[iCells].onclick = selectCell;
-    }
+    //var borders = document.getElementsByClassName("border");
+	/*for (var iBord = 0; iBord<borders.length;iBord++){
+        borders[iBord].onclick = selectCell;
+    }*/
+}
+
+function mouseOnCell(e){
+    //console.log("ON_ class = ", e.target.className);
+	e.target.flClass = e.target.className;
+	view.CellColor(e.target.id,1);
+    //console.log("change color_ class = ", e.target.className);
+	//console.log("model.cells = ",model.cells.length, model.cells);
+}
+function mouseOutCell(e){
+	//console.log("OUT - " , e.target.className);
+	//console.log("_e.fl = ", e.fromElement.flClass, e.target.select); // e.fromElement.flClass тоже самое что e.target.className
+	//if(e.target.select==false){
+		var flClassName=e.fromElement.flClass;
+		if(flClassName == "cell")  {view.displayEmptyCell(e.target.id);} //console.log("Change cell");
+		if(flClassName == "hit")   {view.displayHit(e.target.id);}
+		if(flClassName == "miss")  {view.displayMiss(e.target.id);}
+		if(flClassName == "border"){view.displayBorderShip(e.target.id);}
+		if(flClassName == "selectCell"){console.log("Change selectCell"); /*view.displayBorderShip(e.target.id);*/}
+	//}
+	
 }
 
 function selectCell(e){
     var cell = e.target;
-    console.log("--------------------->  cell: ", cell.id);
-    var guessInput = document.getElementById("guessInput");
-
-    var letters = ["A","B","C","D","E","F","G"];
-    var firstChaar = cell.id.charAt(0);
-    //var row = ;
-    guessInput.value = cell.id;
+    //console.log("--------------------->  cell: ", cell.id,e, cell.select /*e.toElement.select*/);
+    //var guessInput = document.getElementById("guessInput");
+	//console.log("model.cells = ",model.cells[0].id);
+	//cell.flClass = cell.className;
+	
+	//console.log("model.cells = ",model.cells.length, model.cells);
+	
+	
+	//cell.select = true;
+	
+	//view.CellColor(cell.id,2);
+    var letters = "ABCDEFG";
+    var firstNumber = letters.charAt(cell.id.charAt(0));
+	var guess = firstNumber + cell.id.charAt(1);
+    //guessInput.value = firstNumber + cell.id.charAt(1) ; //cell.id;
+	controller.processGaess(guess);
+	//console.log("click! ---> ", cell.className);
+	
+	for (var iCells = 0; iCells< model.cells.length; iCells++) {
+		if(model.cells[iCells].id == cell.id){
+			//model.cells[iCells].select = false;
+			model.cells[iCells].flClass = cell.className;
+		}
+    }
 }
 
 
@@ -285,7 +455,10 @@ function handleFireButton() {
     var guessInput = document.getElementById("guessInput");
     var guess = guessInput.value;
     controller.processGaess(guess);
-
+	for(var i = 0; i<model.numShips; i++){
+        console.log("ships:",model.ships[i].locations,model.ships[i].hits);
+    }
+	
     guessInput.value = "";
 }
 
