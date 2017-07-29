@@ -10,12 +10,6 @@ var view ={
         messageArea.innerHTML = msg;
     },
     
-	
-	displayEmptyCell: function (location) {
-        var cell = document.getElementById(location);
-        cell.setAttribute("class", "cell");
-    },
-	
     displayHit: function (location) {
         var cell = document.getElementById(location);
         cell.setAttribute("class", "hit");
@@ -29,13 +23,7 @@ var view ={
 	displayBorderShip: function (location) {
         var cell = document.getElementById(location);
         cell.setAttribute("class", "border");
-    },
-	
-	CellColor: function(location, k) {
-		var cell = document.getElementById(location);
-		if(k==1) {cell.setAttribute("class", "mouseOnCell");}
-		if(k==2) {cell.setAttribute("class", "selectCell");}
-	}
+    }
 	
 }
 
@@ -61,10 +49,6 @@ var model = {
         { locations: ["61", "62","63"], hits: ["","",""] },
     ],*/
     ships:[], //[{ locations: [], hits: [] } ],
-
-    cells: [],
-
-
 
     fire : function(guess) { //проверка на попадание по кораблю; guess - координата выстрела
         console.log("координата = ", guess);
@@ -96,21 +80,8 @@ var model = {
     },
 
     isSunk:function (ship) { //проверка на то, потоплен ли корабль
-		var nHit=0;
-		for(var i = 0;i<ship.hits.length;i++){
-			if(ship.hits[i]=="hit") {nHit++;}			
-		}
-		if(nHit==ship.locations.length) {
-			return true;
-		}
-		return false;
-		
-		/*if(ship.hits.length == ship.locations.length) {
-			console.log(ship.hits.length, ' == ', ship.locations.length);
-			return true;
-		}*/
-		
-        
+		if(ship.hits.length == ship.locations.length) {return true;}
+        return false;
     },
 
     //СОЗДАНИЕ КОРАБЛЕЙ////////////////////////////////////////////////
@@ -141,7 +112,6 @@ var model = {
         for (var i=1;i<=iEnd;i++){
             for(var j=1; j<=i; j++) {
                 Shiplength=0;
-
                 for(var iDeck = 1; iDeck<=maxShipLength; iDeck++){
                     Shiplength++; //определяю длину текущего корабля
                 }
@@ -151,15 +121,15 @@ var model = {
                 // цикл проверяет на возможность полученных координат относительно других кораблей на поле
                 do{
                     locations = this.generateCoordinateShip(Shiplength);  //(this.ships[i].locations.length);
-                } while (this.collision(locations));
+                    this.ships[kShip].borders = this.createBorders(locations);
+                    console.log("this.ships["+kShip+"].borders: ",this.ships[kShip].borders);
+                } while (this.collision(location));
                 this.ships[kShip].locations = locations;
-                this.ships[kShip].borders = this.createBorders(locations);
-                console.log("this.ships["+kShip+"].borders: ",this.ships[kShip].borders);
 				
 				//(временный код) отобразить на игровом поле границы корабля
-				/*for (var iB = 0; iB<this.ships[kShip].borders.length;iB++) {
+				for (var iB = 0; iB<this.ships[kShip].borders.length;iB++) {
 					view.displayBorderShip(this.ships[kShip].borders[iB]);
-				}*/
+				}
 				
 				
                 console.log("this.ships["+kShip+"].locations: ",this.ships[kShip].locations);
@@ -189,7 +159,7 @@ var model = {
 
     addEmptyShips: function () {
         for( var i=0; i<this.numShips;i++){
-            this.ships.push({ locations: [], hits: [], borders: [] });
+            this.ships.push({ locations: [], hits: [] });
         }
 
     },
@@ -203,18 +173,15 @@ var model = {
         for(var i = 0; i<locations.length; i++){
             row     = locations[i].charAt(0);
             column  = locations[i].charAt(1);
-			// 8  1  2
-            // 7  0  3
-            // 6  5  4
-			{border[++iBorder] = (row) +""+ (column);}                                                          //0
-			if(row>0) {border[++iBorder] =  (+row-1) +""+ (column); }                                           //1
-            if(row>0 && column<this.boardSize-1){border[++iBorder] = (+row-1) +""+ (+column+1)}                 //2
-			if(column<this.boardSize-1) {border[++iBorder] = (row) +""+ (+column+1);}                           //3
-            if(row<this.boardSize-1 && column<this.boardSize-1) {border[++iBorder] = (+row+1) +""+ (+column+1)} //4
-            if(row<this.boardSize-1) {border[++iBorder] = (+row+1) +""+ (column);}                              //5
-            if(row<this.boardSize-1 && column>0){border[++iBorder] = (+row+1) +""+ (+column-1)}                   //6
-            if(column>0) {border[++iBorder] =    (row) +""+ (+column-1);}                                       //7
-            if(row>0 && column>0){border[++iBorder] = (+row-1) +""+ (+column-1)}                                //8
+			/*if (row>0)                 {border[iBorder]   = row-1;}
+            if (column<this.boardSize) {border[++iBorder] = column+1;}
+            if (row<this.boardSize)    {border[++iBorder] = row+1;}
+            if (column>0)              {border[++iBorder] = column-1;}*/
+			{border[++iBorder]   =    (row) + (column);}
+			if(row>0) {border[++iBorder] = (+row-1) + (column); }
+			if(column<this.boardSize) {border[++iBorder] =    (row) + (+column+1);}
+            if(row<this.boardSize) {border[++iBorder] = (+row+1) + (column);   }
+            if(column>0) {border[++iBorder] =    (row) + (+column-1);}
         }
         return border;
     },
@@ -290,19 +257,6 @@ var model = {
             }
         }
         return false;
-    },
-
-
-    setClassCell: function (location) {
-        var cell = document.getElementById(location);
-        for(var iCell=0; iCell<this.cells.length; iCell++){
-            if(this.cells[iCell].id == cell.id){
-                this.cells[iCell].flClass = cell.className;
-            }
-
-        }
-        //model.cells[iCells].flClass = model.cells[iCells].className; //запоминаю текущий класс ячейки
-
     }
 
 }
@@ -363,36 +317,9 @@ function parseGuess(guess) { //функция проверки вводимой 
 
 ////////////////////////////////////////////////////////
 function init(){
-	var cells_ = document.getElementsByClassName("cell");
-	var enemyField = document.getElementById("enemyField");
-	console.log("enemyField: " ,enemyField);
-	enemyField.addEventListener("click",selectCell);
-	enemyField.addEventListener("mouseover",mouseOnCell);
-	enemyField.addEventListener("mouseout",mouseOutCell);
-	
-	for (var i=0;i<cells_.length;i++) {
-		model.cells[i] = cells_[i]
-	}
-    console.log("cells: ", model.cells);
-	//console.log("model.cells = ",model.cells.length);
-    for (var iCells = 0; iCells< model.cells.length; iCells++) {
-        model.cells[iCells].flClass = model.cells[iCells].className; //запоминаю текущий класс ячейки
-		//model.cells[iCells].select = false;
-		//console.log("cells[iCells].fl = ", cells[iCells].fl);
-        //model.cells[iCells].onclick = selectCell;
-		/*
-		model.cells[iCells].addEventListener("click",selectCell);
-        model.cells[iCells].addEventListener("mouseover",mouseOnCell); //mousemove
-        model.cells[iCells].addEventListener("mouseout",mouseOutCell);
-		*/
-    }
-    
-
-
-
     do{
         //var NShips = prompt("число кораблей(1,3,6,10,15):");
-		var NShips = 6;
+		var NShips = 3;
         var createShips_ = model.createShips(NShips);
         if(createShips_!="OK") {console.log(createShips_);}
     } while (createShips_!="OK");
@@ -404,67 +331,29 @@ function init(){
         console.log("ships:",model.ships[i].locations,model.ships[i].hits);
     }
 
-/*
+
     var fireButton = document.getElementById("fireButton");
     fireButton.onclick = handleFireButton;
     //по нажатию на энтер
     var guessInput = document.getElementById("guessInput");
     guessInput.onkeypress = handleKeyPress;
-*/
 
-    //var borders = document.getElementsByClassName("border");
-	/*for (var iBord = 0; iBord<borders.length;iBord++){
-        borders[iBord].onclick = selectCell;
-    }*/
-}
-
-function mouseOnCell(e){
-    //console.log("ON_ class = ", e.target.className);
-	e.target.flClass = e.target.className;
-	view.CellColor(e.target.id,1);
-    //console.log("change color_ class = ", e.target.className);
-	//console.log("model.cells = ",model.cells.length, model.cells);
-}
-function mouseOutCell(e){
-	//console.log("OUT - " , e.target.className);
-	//console.log("_e.fl = ", e.fromElement.flClass, e.target.select); // e.fromElement.flClass тоже самое что e.target.className
-	//if(e.target.select==false){
-		var flClassName=e.fromElement.flClass;
-		if(flClassName == "cell")  {view.displayEmptyCell(e.target.id);} //console.log("Change cell");
-		if(flClassName == "hit")   {view.displayHit(e.target.id);}
-		if(flClassName == "miss")  {view.displayMiss(e.target.id);}
-		if(flClassName == "border"){view.displayBorderShip(e.target.id);}
-		if(flClassName == "selectCell"){console.log("Change selectCell"); /*view.displayBorderShip(e.target.id);*/}
-	//}
-	
+    var cells = document.getElementsByClassName("cell");
+    //console.log("cell: ", cells[0]);
+    for (var iCells = 0; iCells< cells.length; iCells++) {
+        cells[iCells].onclick = selectCell;
+    }
 }
 
 function selectCell(e){
     var cell = e.target;
-    //console.log("--------------------->  cell: ", cell.id,e, cell.select /*e.toElement.select*/);
-    //var guessInput = document.getElementById("guessInput");
-	//console.log("model.cells = ",model.cells[0].id);
-	//cell.flClass = cell.className;
-	
-	//console.log("model.cells = ",model.cells.length, model.cells);
-	
-	
-	//cell.select = true;
-	
-	//view.CellColor(cell.id,2);
+    console.log("--------------------->  cell: ", cell.id);
+    var guessInput = document.getElementById("guessInput");
+
     var letters = "ABCDEFG";
     var firstNumber = letters.charAt(cell.id.charAt(0));
-	var guess = firstNumber + cell.id.charAt(1);
-    //guessInput.value = firstNumber + cell.id.charAt(1) ; //cell.id;
-	controller.processGaess(guess);
-	//console.log("click! ---> ", cell.className);
-	
-	for (var iCells = 0; iCells< model.cells.length; iCells++) {
-		if(model.cells[iCells].id == cell.id){
-			//model.cells[iCells].select = false;
-			model.cells[iCells].flClass = cell.className;
-		}
-    }
+    //var row = ;
+    guessInput.value = firstNumber + cell.id.charAt(1) ; //cell.id;
 }
 
 

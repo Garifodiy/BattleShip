@@ -15,7 +15,7 @@
             width: 510px;
             height: 510px;
             margin: auto;
-            background: url("board_0_green.jpg") no-repeat;
+            background: url("board_green_2.jpg") no-repeat;
         }
 
         div#messageArea{
@@ -50,10 +50,13 @@
 		
 		.cell { }
         .hit {
-            background: url("ship_green.png") no-repeat center center;
+            background: url("animation/ship_hit/shipGreenHit_Boom_animation.gif") no-repeat center center;
+        }
+        .hitSmoke {
+            background: url("animation/ship_hit/shipGreenHit_Boom_animation.gif") no-repeat center center;
         }
         .miss {
-            background: url("miss_green.png") no-repeat center center;
+            background: url("miss_green_2.png") no-repeat center center;
         }
 		.border {
             background: url("border.png") no-repeat center center;
@@ -62,11 +65,14 @@
     </style>
 	<style id="style_2">
 		.mouseOnCell {
+			background: url("target_black.png") no-repeat center center;
             background-color: rgb(0,255,25);
+			background: url("target_green_black.jpg") no-repeat center center;
 			
 		}
 		.selectCell {
-            background-color: rgb(209,255,176);
+			/*background-color: rgb(209,255,176);*/
+			
 		}
 	</style>
 </head>
@@ -76,7 +82,7 @@
         <div id = "board">
             <div id="messageArea"></div>
 
-            <table>
+            <table id = "enemyField">
                 <tr>
                     <td id="00" class ="cell"></td><td id="01" class ="cell"></td><td id="02" class ="cell"></td><td id="03" class ="cell"></td><td id="04" class ="cell"></td><td id="05" class ="cell"></td><td id="06" class ="cell"></td>
                 </tr>
